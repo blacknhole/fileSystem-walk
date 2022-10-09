@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -16,19 +17,19 @@ func TestRun(t *testing.T) {
 		expected string
 	}{
 		{name: "FilterNoExtension", root: "testdata",
-			cfg:      config{"", 0, true, false},
+			cfg:      config{ext: "", size: 0, list: true},
 			expected: "testdata/dir.log\ntestdata/dir2/script.sh\n"},
 		{name: "FilterExtensionMatch", root: "testdata",
-			cfg:      config{".log", 0, true, false},
+			cfg:      config{ext: ".log", size: 0, list: true},
 			expected: "testdata/dir.log\n"},
 		{name: "FilterExtensionNoMatch", root: "testdata",
-			cfg:      config{".gz", 0, true, false},
+			cfg:      config{ext: ".gz", size: 0, list: true},
 			expected: ""},
 		{name: "FilterExtensionSizeMatch", root: "testdata",
-			cfg:      config{".log", 10, true, false},
+			cfg:      config{ext: ".log", size: 10, list: true},
 			expected: "testdata/dir.log\n"},
 		{name: "FilterExtensionSizeNoMatch", root: "testdata",
-			cfg:      config{".log", 20, true, false},
+			cfg:      config{ext: ".log", size: 20, list: true},
 			expected: ""},
 	}
 
@@ -91,7 +92,10 @@ func TestRunDelExtension(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var buf bytes.Buffer
+			var (
+				buf    bytes.Buffer
+				logBuf bytes.Buffer
+			)
 
 			tempDir, cleanup := createTempDir(t, map[string]int{
 				tc.cfg.ext:     tc.nDelete,
@@ -99,6 +103,7 @@ func TestRunDelExtension(t *testing.T) {
 			})
 			defer cleanup()
 
+			tc.cfg.wLog = &logBuf
 			if err := run(tempDir, &buf, tc.cfg); err != nil {
 				t.Fatal(err)
 			}
@@ -116,6 +121,12 @@ func TestRunDelExtension(t *testing.T) {
 			if len(filesLeft) != tc.nNoDelete {
 				t.Errorf("Expected %d files left, got %d instead\n",
 					tc.nNoDelete, len(filesLeft))
+			}
+
+			logLines := strings.Split(logBuf.String(), "\n")
+			expLines := tc.nDelete + 1
+			if len(logLines) != expLines {
+				t.Errorf("Expected %d log lines, got %d instead\n", expLines, len(logLines))
 			}
 		})
 	}
