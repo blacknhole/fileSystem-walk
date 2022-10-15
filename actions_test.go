@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestFilterOut(t *testing.T) {
@@ -26,7 +27,7 @@ func TestFilterOut(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			f := filterOut(tc.path, []string{tc.ext}, tc.minSize, info)
+			f := filterOut(tc.path, []string{tc.ext}, tc.minSize, time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC), info)
 			if f != tc.expected {
 				t.Errorf("Expected %t, got %t instead\n", tc.expected, f)
 			}

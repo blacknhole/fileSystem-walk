@@ -7,11 +7,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type config struct {
 	exts    []string
 	size    int64
+	date    time.Time
 	list    bool
 	del     bool
 	wLog    io.Writer
@@ -37,6 +39,7 @@ func main() {
 	del := flag.Bool("del", false, "Delete files")
 	flag.Var(&exts, "ext", "File extention to filter out")
 	size := flag.Int64("size", 0, "Minimum file size")
+	date := flag.String("date", "1970-01-01", "Earliest file modification date")
 	logFile := flag.String("log", "", "File to log")
 	archive := flag.String("archive", "", "Archive directory")
 
@@ -56,9 +59,16 @@ func main() {
 		defer f.Close()
 	}
 
+	d, err := time.Parse(time.RFC3339[:10], *date)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	c := config{
 		exts:    exts,
 		size:    *size,
+		date:    d,
 		list:    *list,
 		del:     *del,
 		wLog:    f,
@@ -80,7 +90,7 @@ func run(root string, out io.Writer, cfg config) error {
 				return err
 			}
 
-			if filterOut(path, cfg.exts, cfg.size, info) {
+			if filterOut(path, cfg.exts, cfg.size, cfg.date, info) {
 				return nil
 			}
 
