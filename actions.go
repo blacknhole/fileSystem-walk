@@ -9,16 +9,21 @@ import (
 	"path/filepath"
 )
 
-func filterOut(path, ext string, minSize int64, info os.FileInfo) bool {
+func filterOut(path string, exts []string, minSize int64, info os.FileInfo) bool {
 	if info.IsDir() || info.Size() < minSize {
 		return true
 	}
 
-	if ext != "" && filepath.Ext(path) != ext {
-		return true
+	ret := false
+	for _, ext := range exts {
+		if ext != "" {
+			ret = true
+			if filepath.Ext(path) == ext {
+				return false
+			}
+		}
 	}
-
-	return false
+	return ret
 }
 
 func listFile(path string, out io.Writer) error {

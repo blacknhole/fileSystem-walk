@@ -26,7 +26,7 @@ func TestFilterOut(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			f := filterOut(tc.path, tc.ext, tc.minSize, info)
+			f := filterOut(tc.path, []string{tc.ext}, tc.minSize, info)
 			if f != tc.expected {
 				t.Errorf("Expected %t, got %t instead\n", tc.expected, f)
 			}

@@ -10,7 +10,7 @@ import (
 )
 
 type config struct {
-	ext     string
+	exts    []string
 	size    int64
 	list    bool
 	del     bool
@@ -18,11 +18,24 @@ type config struct {
 	archive string
 }
 
+type stringSlice []string
+
+func (s *stringSlice) String() string {
+	return "String slice"
+}
+
+func (s *stringSlice) Set(v string) error {
+	*s = append(*s, v)
+	return nil
+}
+
 func main() {
+	var exts stringSlice
+
 	root := flag.String("root", ".", "Root directory to start")
 	list := flag.Bool("list", false, "List files only")
 	del := flag.Bool("del", false, "Delete files")
-	ext := flag.String("ext", "", "File extention to filter out")
+	flag.Var(&exts, "ext", "File extention to filter out")
 	size := flag.Int64("size", 0, "Minimum file size")
 	logFile := flag.String("log", "", "File to log")
 	archive := flag.String("archive", "", "Archive directory")
@@ -44,7 +57,7 @@ func main() {
 	}
 
 	c := config{
-		ext:     *ext,
+		exts:    exts,
 		size:    *size,
 		list:    *list,
 		del:     *del,
@@ -67,7 +80,7 @@ func run(root string, out io.Writer, cfg config) error {
 				return err
 			}
 
-			if filterOut(path, cfg.ext, cfg.size, info) {
+			if filterOut(path, cfg.exts, cfg.size, info) {
 				return nil
 			}
 

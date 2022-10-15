@@ -17,19 +17,19 @@ func TestRun(t *testing.T) {
 		expected string
 	}{
 		{name: "FilterNoExtension", root: "testdata",
-			cfg:      config{ext: "", size: 0, list: true},
+			cfg:      config{exts: []string{}, size: 0, list: true},
 			expected: "testdata/dir.log\ntestdata/dir2/script.sh\n"},
 		{name: "FilterExtensionMatch", root: "testdata",
-			cfg:      config{ext: ".log", size: 0, list: true},
+			cfg:      config{exts: []string{".log"}, size: 0, list: true},
 			expected: "testdata/dir.log\n"},
 		{name: "FilterExtensionNoMatch", root: "testdata",
-			cfg:      config{ext: ".gz", size: 0, list: true},
+			cfg:      config{exts: []string{".gz"}, size: 0, list: true},
 			expected: ""},
 		{name: "FilterExtensionSizeMatch", root: "testdata",
-			cfg:      config{ext: ".log", size: 10, list: true},
+			cfg:      config{exts: []string{".log"}, size: 10, list: true},
 			expected: "testdata/dir.log\n"},
 		{name: "FilterExtensionSizeNoMatch", root: "testdata",
-			cfg:      config{ext: ".log", size: 20, list: true},
+			cfg:      config{exts: []string{".log"}, size: 20, list: true},
 			expected: ""},
 	}
 
@@ -77,15 +77,15 @@ func TestRunDelExtension(t *testing.T) {
 		expected    string
 	}{
 		{name: "DeleteExtensionNoMatch",
-			cfg:         config{ext: ".log", del: true},
+			cfg:         config{exts: []string{".log"}, del: true},
 			extNoDelete: ".gz", nDelete: 0, nNoDelete: 10,
 			expected: ""},
 		{name: "DeleteExtensionMatch",
-			cfg:         config{ext: ".log", del: true},
+			cfg:         config{exts: []string{".log"}, del: true},
 			extNoDelete: "", nDelete: 10, nNoDelete: 0,
 			expected: ""},
 		{name: "DeleteExtensionMixed",
-			cfg:         config{ext: ".log", del: true},
+			cfg:         config{exts: []string{".log"}, del: true},
 			extNoDelete: ".gz", nDelete: 5, nNoDelete: 5,
 			expected: ""},
 	}
@@ -98,7 +98,7 @@ func TestRunDelExtension(t *testing.T) {
 			)
 
 			tempDir, cleanup := createTempDir(t, map[string]int{
-				tc.cfg.ext:     tc.nDelete,
+				tc.cfg.exts[0]: tc.nDelete,
 				tc.extNoDelete: tc.nNoDelete,
 			})
 			defer cleanup()
@@ -141,13 +141,13 @@ func TestRunArchive(t *testing.T) {
 		nNoArchive   int
 	}{
 		{name: "ArchiveExtensionNoMatch",
-			cfg:          config{ext: ".log"},
+			cfg:          config{exts: []string{".log"}},
 			extNoArchive: ".gz", nArchive: 0, nNoArchive: 10},
 		{name: "ArchiveExtensionMatch",
-			cfg:          config{ext: ".log"},
+			cfg:          config{exts: []string{".log"}},
 			extNoArchive: ".gz", nArchive: 10, nNoArchive: 0},
 		{name: "ArchiveExtensionMixed",
-			cfg:          config{ext: ".log"},
+			cfg:          config{exts: []string{".log"}},
 			extNoArchive: ".gz", nArchive: 5, nNoArchive: 5},
 	}
 	for _, tc := range testCases {
@@ -155,7 +155,7 @@ func TestRunArchive(t *testing.T) {
 			var buf bytes.Buffer
 			tempDir, cleanup := createTempDir(t,
 				map[string]int{
-					tc.cfg.ext:      tc.nArchive,
+					tc.cfg.exts[0]:  tc.nArchive,
 					tc.extNoArchive: tc.nNoArchive,
 				})
 			defer cleanup()
@@ -168,7 +168,7 @@ func TestRunArchive(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			pattern := filepath.Join(tempDir, fmt.Sprintf("*%s", tc.cfg.ext))
+			pattern := filepath.Join(tempDir, fmt.Sprintf("*%s", tc.cfg.exts[0]))
 			files, err := filepath.Glob(pattern)
 			if err != nil {
 				t.Fatal(err)
